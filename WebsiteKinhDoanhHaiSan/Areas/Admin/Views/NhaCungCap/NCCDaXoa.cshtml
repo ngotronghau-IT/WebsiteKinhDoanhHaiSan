@@ -1,0 +1,52 @@
+﻿@model IEnumerable<WebsiteKinhDoanhHaiSan.Models.NhaCungCap>
+
+@{
+    ViewBag.Title = "NCCDaXoa";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Nhà Cung Cấp Đã Xóa</h2>
+
+
+<table class="table">
+    <tr>
+        <th>
+            Tên Nhà Cung Cấp
+        </th>
+        <th>
+            Địa Chỉ
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Email)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.SDT)
+        </th>
+        
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.TenNCC)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.DiaChi)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Email)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.SDT)
+        </td>
+        
+        <td>
+            <div class="btn btn-warning">
+                <a href="@Url.Action("HoanTac", new {MaNCC=item.MaNCC})" onclick="return confirm('Bạn có chắc muốn Hoàn Tác?')"><i class="bi bi-arrow-clockwise"></i>Hoàn Tác</a>
+            </div>
+        </td>
+    </tr>
+}
+
+</table>

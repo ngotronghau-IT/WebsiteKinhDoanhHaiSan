@@ -1,0 +1,292 @@
+﻿
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+
+
+<p>
+    <a href="#" id="btnAdd" class="btn btn-success btn-icon-split" data-toggle="modal" data-target="#modalNhaCungCap">
+        <span class="icon text-white-50">
+            <i class="fas fa-plus"></i>
+        </span>
+        <span class="text">Thêm Mới</span>
+    </a>
+    <a href="@Url.Action("NCCDaXoa")" class="btn btn-danger btn-icon-split">
+        <span class="icon text-white-50">
+            <i class="fa-solid fa-trash"></i>
+        </span>
+        <span class="text">Nhà Cung Cấp Đã Xóa</span>
+    </a>
+
+</p>
+<table class="table">
+    <tr>
+        <th>
+            Họ Tên
+        </th>
+
+        <th>
+            Địa Chỉ
+        </th>
+
+        <th>
+            SĐT
+        </th>
+        <th>
+            Email
+        </th>
+        <th></th>
+    </tr>
+    <tbody id="tblDsNhaCungCap">
+    </tbody>
+
+    <!--phan trang-->
+    <nav aria-label="...">
+        <ul class="pagination pagination-sm" id="phanTrang">
+        </ul>
+    </nav>
+
+</table>
+
+
+
+
+<!--modal chi hien thi form khi nguoi dung goi modal-->
+
+<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" id="modalNhaCungCap">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="panel panel-primary bg-primary text-white">
+                <h4 class="panel-heading text-center" id="modalTitle">  </h4>
+                <div class="panel-body">
+
+                    <div class="form-group" style="margin:20px">
+                        <input type="hidden" id="MaNCC" value="" />
+                        <label>Họ Tên</label>
+                        <input type="text" class="form-control" id="TenNCC" placeholder="Họ Tên">
+                        <label>Địa Chỉ</label>
+                        <input type="text" class="form-control" id="DiaChi" placeholder="Địa Chỉ">
+                        <label>SDT</label>
+                        <input type="text" class="form-control" id="SDT" placeholder="SDT">
+                        <label>Email</label>
+                        <input type="email" class="form-control" id="Email" placeholder="Email">
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnSubmit">Xác Nhận</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section scripts{
+    <script>
+
+
+
+        $(document).ready(function () {
+            $(document).load("Content-Type:application/json; charset=UTF-8");
+
+            LoadDs();
+
+        })
+
+        function LoadDs(trang) {
+            $.ajax({
+                url: '/admin/NhaCungCap/LoadDs',
+                type: 'get',
+                data: {
+                    trang: trang
+                },
+                success: function (res) {
+                    if (res.trangthai == 0) {
+                        let tr = "";
+
+                        console.log(res);
+                        $.each(res.data, function (k, v) {
+
+                            tr += '<tr id="' + v.MaNCC + '">';
+                            tr += '<td>' + v.TenNCC + '</td>'
+                            tr += '<td>' + v.DiaChi + '</td>'
+                            tr += '<td>' + v.SDT + '</td>'
+                            tr += '<td>' + v.Email + '</td>'
+                            tr += '<td class="text-right">';
+                            tr += '<a class="btn btn-success btn-circle   edit" data-toggle="modal" data-target="#modalNhaCungCap" href="#"><i class="fas fa-edit"></i></a> |'
+                            tr += '<a href="#" class="btn btn-danger btn-circle   delete"><i class="fas fa-trash"></i></a>'
+                            tr += '</td>';
+                            tr += '</tr>';
+
+
+                        })
+                        $('#tblDsNhaCungCap').html(tr);
+
+                        //phan trang
+                        if (res.soTrang > 1) {
+                            let li = '';
+                            for (i = 1; i <= res.soTrang; i++) {
+
+                                li += '<li class="page-item"><a class="page-link" href="#">' + i + '</a></li>';
+                            }
+                            $('#phanTrang').html(li);
+
+                        }
+
+                    }
+                }
+
+            });
+        }
+
+        //su kien click cua phan trang
+        $('#phanTrang').on('click', 'li', function (e) {
+            e.preventDefault(); // huy href
+            var trang = parseInt($(this).text());
+            LoadDs(trang);
+        });
+
+        //Nut Them Moi
+        $("#btnAdd").click(function () {
+            $("#modalTitle").text('Thêm Mới');
+            $('#MaNCC').val(''); // truyen id de biet khi nao dung button submit lam button chinh sua
+
+        })
+
+
+        //su kien click cua button submit
+        $("#btnSubmit").click(function () {
+            let TenNCC = $('#TenNCC').val().trim();
+            let DiaChi = $('#DiaChi').val().trim();
+            let SDT = $('#SDT').val().trim();
+            let Email = $('#Email').val().trim();
+
+
+            if (TenNCC.length == 0 || Email.length == 0) {
+                alert('Dữ liệu không được để trống !');
+                return;
+            }
+
+            let MaNCC = $('#MaNCC').val().trim();
+
+            if (MaNCC.length == 0) { //truong hop them moi
+                //dung ajax de them moi
+                $.ajax({
+                    url: '/admin/NhaCungCap/Create',
+                    type: 'post',
+                    data: {
+                        TenNCC: TenNCC,
+                        DiaChi: DiaChi,
+                        SDT: SDT,
+                        Email: Email
+
+                    },
+                    success: function (data) {
+                        if (data.trangthai) {
+                            alert(data.msg);
+                            LoadDs(); // load lai trang sau khi them moi du lieu
+                        }
+                        else {
+                            alert(data.msg);
+
+                        }
+                    }
+
+                })
+            }
+            else {
+                //dung ajax de cap nhat
+                $.ajax({
+                    url: '/admin/NhaCungCap/Update',
+                    type: 'post',
+                    data: {
+                        MaNCC: MaNCC,
+                        TenNCC: TenNCC,
+                        DiaChi: DiaChi,
+                        SDT: SDT,
+                        Email: Email
+                    },
+                    success: function (data) {
+                        if (data.trangthai == 0) {
+                            alert(data.msg);
+                            $('#modalNhaCungCap').modal('hide');
+
+                            LoadDs(); // load lai trang sau khi cap nhat
+                        }
+                        else {
+                            alert(data.msg);
+                        }
+                    }
+
+                })
+
+            }
+
+        })
+
+
+        //su kien click button edit
+        $(document).on('click', '.edit', function () {
+            //get element id in row table
+            let MaNCC = $(this).closest('tr').attr('id'); // this:nut dang click , closest: lay cha la <tr> , attr:thuoc tinh can lay
+
+            $.ajax({
+                url: '/Admin/NhaCungCap/GetById',
+                type: 'get',
+                data: { id: MaNCC },
+                success: function (res) {
+                    if (res.trangthai == 0) {
+
+                        $("#modalTitle").text('Chỉnh Sửa');
+                        ////show thong tin len modal
+                        $('#MaNCC').val(MaNCC); // truyen id de biet khi nao dung button submit lam button chinh sua
+
+                        $('#TenNCC').val(res.data.TenNCC);
+                        $('#DiaChi').val(res.data.DiaChi);
+                        $('#SDT').val(res.data.SDT);
+                        $('#Email').val(res.data.Email);
+
+                    }
+                }
+            })
+        });
+
+        //su kien click button delete
+        $(document).on('click', '.delete', function () {
+            //get element id in row table
+            let id = $(this).closest('tr').attr('id'); // this:nut dang click , closest: lay cha la <tr> , attr:thuoc tinh can lay
+
+            if (confirm("Bạn có chắc chắn muốn xóa ??") == true) {
+                //dung ajax de xoa
+                $.ajax({
+                    url: '/admin/NhaCungCap/Delete',
+                    type: 'post',
+                    data: {
+                        id: id
+                    },
+                    success: function (data) {
+                        if (data.trangthai == 0) {
+                            alert(data.msg);
+                            LoadDs(); // load lai trang sau khi cap nhat
+                        }
+                        else {
+                            alert(data.msg);
+                        }
+                    }
+
+                })
+            }
+
+
+        });
+
+    </script>
+
+
+}
